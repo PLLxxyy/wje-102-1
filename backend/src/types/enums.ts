@@ -44,4 +44,5 @@ export enum OperationAction {
   Delete = 'DELETE',
   Login = 'LOGIN',
   Logout = 'LOGOUT',
+  Reference = 'REFERENCE',
 }

@@ -87,6 +87,42 @@ export class RecipeService {
     });
   }
 
+  async reference(id: number, user: JwtUser): Promise<Recipe> {
+    const source = await this.findOne(id);
+    if (source.status !== RecipeStatus.Published) {
+      throw new ForbiddenException('只能引用已发布的菜谱');
+    }
+    const ingredientInputs: RecipeIngredientInputDto[] = source.recipeIngredients.map((item) => ({
+      ingredient_id: item.ingredient_id,
+      amount: item.amount,
+      unit: item.unit,
+    }));
+    const stepInputs: RecipeStepInputDto[] = source.steps.map((step) => ({
+      step_number: step.step_number,
+      description: step.description,
+      image_url: step.image_url,
+      duration_minutes: step.duration_minutes,
+    }));
+    const recipe = await this.recipeRepository.save(
+      this.recipeRepository.create({
+        title: `引用: ${source.title}`,
+        description: source.description,
+        category: source.category,
+        servings: source.servings,
+        difficulty: source.difficulty,
+        cover_image: source.cover_image,
+        status: RecipeStatus.Draft,
+        author_id: user.id,
+      }),
+    );
+    await this.replaceRecipeIngredients(recipe.id, ingredientInputs);
+    await this.replaceSteps(recipe.id, stepInputs);
+    await this.applyNutrition(recipe.id, ingredientInputs);
+    const saved = await this.findOne(recipe.id);
+    await this.createSnapshot(saved, user.id);
+    return saved;
+  }
+
   async findOne(id: number): Promise<Recipe> {
     const recipe = await this.baseQuery().where('recipe.id = :id', { id }).getOne();
     if (!recipe) {

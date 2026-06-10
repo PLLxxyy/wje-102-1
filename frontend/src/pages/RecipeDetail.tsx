@@ -1,4 +1,4 @@
-import { HeartOutlined, HistoryOutlined, TeamOutlined } from '@ant-design/icons';
+import { CopyOutlined, HeartOutlined, HistoryOutlined, TeamOutlined } from '@ant-design/icons';
 import {
   Button,
   Descriptions,
@@ -12,7 +12,7 @@ import {
   message,
 } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { collectionApi } from '../api/collection';
 import { recipeApi } from '../api/recipe';
 import { userApi } from '../api/user';
@@ -21,11 +21,12 @@ import { StatusBadge } from '../components/common/StatusBadge';
 import { useCollectionStore } from '../stores/useCollectionStore';
 import { useRecipeStore } from '../stores/useRecipeStore';
 import { useUserStore } from '../stores/useUserStore';
-import { CollaborationRole } from '../types/enums';
+import { CollaborationRole, RecipeStatus } from '../types/enums';
 import { User } from '../types/user';
 
 export function RecipeDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const recipeId = Number(id);
   const currentUser = useUserStore((state) => state.currentUser);
   const { currentRecipe, fetchRecipe } = useRecipeStore();
@@ -84,6 +85,12 @@ export function RecipeDetail() {
     message.success('协作邀请已发送');
   };
 
+  const handleReference = async () => {
+    const created = await recipeApi.reference(currentRecipe.id);
+    message.success('已引用为草稿');
+    navigate(`/recipe/${created.id}/edit`);
+  };
+
   return (
     <main className="page-shell">
       <section className="recipe-detail-head">
@@ -127,6 +134,11 @@ export function RecipeDetail() {
             <Button icon={<HeartOutlined />} onClick={() => void addToCollection()}>
               收藏
             </Button>
+            {currentRecipe.status === RecipeStatus.Published ? (
+              <Button icon={<CopyOutlined />} onClick={() => void handleReference()}>
+                引用为草稿
+              </Button>
+            ) : null}
             {currentUser.id === currentRecipe.author_id ? (
               <>
                 <Select

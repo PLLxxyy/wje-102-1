@@ -39,6 +39,9 @@ export class LoggingInterceptor implements NestInterceptor {
     if (path.endsWith('/auth/login')) {
       return OperationAction.Login;
     }
+    if (path.includes('/reference')) {
+      return OperationAction.Reference;
+    }
     if (method === 'POST') {
       return OperationAction.Create;
     }

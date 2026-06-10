@@ -43,7 +43,8 @@ export enum OperationAction {
   Update = 'UPDATE',
   Delete = 'DELETE',
   Login = 'LOGIN',
-  Logout = 'LOGOUT'
+  Logout = 'LOGOUT',
+  Reference = 'REFERENCE'
 }
 
 export const categoryOptions = Object.values(RecipeCategory);

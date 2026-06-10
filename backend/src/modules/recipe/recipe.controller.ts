@@ -42,6 +42,12 @@ export class RecipeController {
     return this.recipeService.findMine(user.id, search);
   }
 
+  @Post(':id/reference')
+  @UseGuards(JwtAuthGuard)
+  reference(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: JwtUser): Promise<Recipe> {
+    return this.recipeService.reference(id, user);
+  }
+
   @Post()
   @UseGuards(JwtAuthGuard)
   create(@Body() dto: CreateRecipeDto, @CurrentUser() user: JwtUser): Promise<Recipe> {

@@ -23,6 +23,9 @@ export const recipeApi = {
   create(payload: RecipePayload): Promise<Recipe> {
     return unwrap(request.post('/recipes', payload));
   },
+  reference(id: number): Promise<Recipe> {
+    return unwrap(request.post(`/recipes/${id}/reference`));
+  },
   update(id: number, payload: Partial<RecipePayload>): Promise<Recipe> {
     return unwrap(request.put(`/recipes/${id}`, payload));
   },
