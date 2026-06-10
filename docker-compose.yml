@@ -1,0 +1,56 @@
+name: wjerecipeworks
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: ${COMPOSE_PROJECT_NAME:-wjerecipeworks}-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - "${DB_PORT:-57602}:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build: ./backend
+    container_name: ${COMPOSE_PROJECT_NAME:-wjerecipeworks}-backend
+    restart: unless-stopped
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      NODE_ENV: production
+      FRONTEND_ORIGIN: http://localhost:${FRONTEND_PORT:-28602}
+    ports:
+      - "${BACKEND_PORT:-29602}:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: /api
+        VITE_WS_URL: /
+    container_name: ${COMPOSE_PROJECT_NAME:-wjerecipeworks}-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-28602}:80"
+    depends_on:
+      - backend
+
+volumes:
+  db_data:
